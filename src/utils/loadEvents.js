@@ -2,14 +2,19 @@ import { normalizeEvent } from './normalizeEvent'
 
 /**
  * Dual-mode data loader.
- * VITE_DATA_SOURCE = "events.json"          → fetch /events.json (served from public/)
- * VITE_DATA_SOURCE = "https://..."          → fetch remote URL
+ * Supports:
+ *   1. Network URL starting with 'http' or 'https'
+ *   2. File path (e.g., '../events.json' or 'events.json') resolved at runtime.
  */
 export async function loadEvents() {
   const src = import.meta.env.VITE_DATA_SOURCE
   if (!src) throw new Error('VITE_DATA_SOURCE is not set')
 
-  const url = src.startsWith('http') ? src : `/${src}`
+  // Handle absolute URL vs local paths (e.g., ../events.json, events.json)
+  const url = src.startsWith('http') 
+    ? src 
+    : (src.startsWith('..') ? src : `/${src}`);
+
   const res = await fetch(url)
   if (!res.ok) throw new Error(`Failed to load events: ${res.status} ${res.statusText}`)
 

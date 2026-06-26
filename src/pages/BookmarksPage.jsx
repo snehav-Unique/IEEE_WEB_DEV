@@ -1,6 +1,7 @@
 import React from 'react'
 import { useEvents } from '../context/EventsContext'
-import EventCard from '../components/EventCard'
+import ScrollStack from '../components/ScrollStack/ScrollStack'
+import StackEventCard from '../components/StackEventCard'
 import EmptyState from '../components/EmptyState'
 
 export default function BookmarksPage() {
@@ -10,12 +11,12 @@ export default function BookmarksPage() {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-        <div className="animate-pulse space-y-4">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+        <div className="animate-pulse space-y-6">
           <div className="h-8 bg-panel rounded-xl w-48" />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+          <div className="space-y-6 mt-6">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="h-52 rounded-2xl bg-panel border border-border" />
+              <div key={i} className="h-64 rounded-3xl bg-panel border border-border" />
             ))}
           </div>
         </div>
@@ -24,11 +25,11 @@ export default function BookmarksPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-12">
         <div>
-          <h1 className="font-display font-bold text-3xl text-ink">Bookmarks</h1>
+          <h1 className="font-display font-bold text-3xl sm:text-4xl text-ink">Bookmarks</h1>
           <p className="text-ink-dim text-sm mt-1">
             {bookmarked.length === 0
               ? 'No saved events yet'
@@ -38,10 +39,10 @@ export default function BookmarksPage() {
         {bookmarked.length > 0 && (
           <button
             onClick={clearBookmarks}
-            className="px-4 py-2 rounded-xl border border-red-500/30 text-red-400 text-sm
+            className="px-5 py-2.5 rounded-xl border border-red-500/30 text-red-400 text-sm font-semibold
                        hover:bg-red-500/10 transition-colors"
           >
-            Clear all
+            Clear All
           </button>
         )}
       </div>
@@ -52,16 +53,17 @@ export default function BookmarksPage() {
           sub="Go explore events and tap the bookmark icon to save them here!"
         />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        /* ScrollStack for bookmarks */
+        <ScrollStack>
           {bookmarked.map((event) => (
-            <EventCard
+            <StackEventCard
               key={event.id}
               event={event}
               isBookmarked={true}
               onBookmark={() => toggleBookmark(event.id)}
             />
           ))}
-        </div>
+        </ScrollStack>
       )}
     </div>
   )

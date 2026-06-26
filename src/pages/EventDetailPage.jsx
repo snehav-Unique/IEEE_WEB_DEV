@@ -14,7 +14,10 @@ export default function EventDetailPage() {
   const event = events.find((e) => e.id === id)
 
   useEffect(() => {
-    if (!containerRef.current || !event) return
+    if (!event) return
+    localStorage.setItem('lastViewedEventId', event.id)
+    
+    if (!containerRef.current) return
     gsap.fromTo(
       containerRef.current,
       { opacity: 0, y: 32 },

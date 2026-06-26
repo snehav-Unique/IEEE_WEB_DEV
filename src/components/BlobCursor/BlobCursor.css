@@ -1,0 +1,114 @@
+.liquid-sphere-container {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 70%, rgba(0, 0, 0, 0.4) 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 
+    0 15px 35px rgba(0, 0, 0, 0.5),
+    inset 0 10px 20px rgba(255, 255, 255, 0.15),
+    inset 0 -10px 20px rgba(0, 0, 0, 0.6),
+    0 0 30px rgba(124, 92, 255, 0.15);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.4s ease, box-shadow 0.4s ease, transform 0.4s ease;
+  user-select: none;
+}
+
+.liquid-sphere-container.is-active {
+  border-color: rgba(124, 106, 247, 0.4);
+  box-shadow: 
+    0 20px 45px rgba(0, 0, 0, 0.6),
+    inset 0 10px 20px rgba(255, 255, 255, 0.2),
+    inset 0 -10px 20px rgba(124, 106, 247, 0.15),
+    0 0 40px rgba(124, 106, 247, 0.35);
+  transform: scale(1.02);
+}
+
+.sphere-content {
+  position: absolute;
+  z-index: 10;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.sphere-greeting {
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: #a99ff8;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.sphere-title {
+  font-size: 2.1rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #ffffff 0%, #a99ff8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.sphere-subtitle {
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.4);
+  max-width: 180px;
+  line-height: 1.3;
+}
+
+.blob-main {
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: transparent;
+  user-select: none;
+  cursor: default;
+  border-radius: 50%;
+}
+
+.blob {
+  position: absolute;
+  will-change: transform;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  filter: blur(2px);
+}
+
+.inner-dot {
+  position: absolute;
+  border-radius: 50%;
+}
+
+/* Outer decorative ring to add a liquid material look */
+.sphere-border-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  pointer-events: none;
+  box-shadow: inset 0 0 25px rgba(255, 255, 255, 0.05);
+  background: radial-gradient(circle at 75% 75%, rgba(124, 106, 247, 0.05) 0%, transparent 60%);
+  z-index: 8;
+}
