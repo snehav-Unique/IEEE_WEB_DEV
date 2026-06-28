@@ -43,6 +43,7 @@ Install dependencies:
 npm install
 ```
 VERY IMPORTANT :
+Make a copy of the .env.example to the new env.local by creating it 
 
 Create a `.env.local` file in the project root:
 
