@@ -4,7 +4,7 @@ import BookmarkButton from './BookmarkButton'
 import StarBorder from './StarBorder/StarBorder'
 import { IoInformationCircleOutline, IoPeopleOutline, IoLocationOutline, IoLayersOutline } from 'react-icons/io5'
 
-export default function StackEventCard({ event, isBookmarked, onBookmark }) {
+export default function StackEventCard({ event, isBookmarked, onBookmark, onViewDetails, isExpanded = false }) {
   const [showPreview, setShowPreview] = useState(false)
   const start = event.startTime
   const end = event.endTime
@@ -180,12 +180,26 @@ export default function StackEventCard({ event, isBookmarked, onBookmark }) {
               ))}
             </div>
 
-            <Link
-              to={`/event/${event.id}`}
-              className="text-xs font-semibold text-ink px-4 py-2 rounded-lg transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 bg-white border border-border hover:border-accent/40 hover:text-accent"
-            >
-              View Details
-            </Link>
+            {onViewDetails ? (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  onViewDetails()
+                }}
+                className="text-xs font-semibold text-ink px-4 py-2 rounded-lg transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 bg-white border border-border hover:border-accent/40 hover:text-accent"
+              >
+                {isExpanded ? 'Hide Details' : 'View Details'}
+              </button>
+            ) : (
+              <Link
+                to={`/event/${event.id}`}
+                className="text-xs font-semibold text-ink px-4 py-2 rounded-lg transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 bg-white border border-border hover:border-accent/40 hover:text-accent"
+              >
+                View Details
+              </Link>
+            )}
           </div>
         </div>
       </StarBorder>

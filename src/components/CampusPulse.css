@@ -113,7 +113,7 @@
   font-size: clamp(3rem, 6vw, 6.2rem);
   line-height: 0.95;
   letter-spacing: -0.06em;
-  font-weight: 800;
+  font-weight: 500;
   color: #2b1e28;
 }
 
@@ -123,6 +123,7 @@
   color: #7d6372;
   font-size: clamp(1rem, 1.5vw, 1.125rem);
   line-height: 1.7;
+  font-weight: 400;
 }
 
 .campus-hero__search {
@@ -162,7 +163,7 @@
   min-height: 1.1em;
   font-size: clamp(3.5rem, 8vw, 5.9rem);
   line-height: 0.92;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: -0.08em;
   color: #2b1e28;
   text-shadow:
@@ -172,7 +173,7 @@
 
 .campus-hero__metric-label {
   font-size: clamp(1rem, 1.5vw, 1.15rem);
-  font-weight: 600;
+  font-weight: 500;
   color: #5e4758;
   letter-spacing: 0.02em;
 }
@@ -206,7 +207,7 @@
 
 .campus-hero__stat-value {
   font-size: clamp(1.1rem, 2vw, 1.55rem);
-  font-weight: 700;
+  font-weight: 500;
   color: #2b1e28;
   letter-spacing: -0.04em;
 }
@@ -216,6 +217,7 @@
   text-transform: uppercase;
   letter-spacing: 0.2em;
   color: #8f6d7e;
+  font-weight: 400;
 }
 
 .orb-shell {

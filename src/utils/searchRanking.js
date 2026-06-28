@@ -16,7 +16,7 @@ const SEARCH_SYNONYMS = new Map([
   ['startup', ['entrepreneurship', 'startup']],
 ])
 
-function normalizeText(value) {
+export function normalizeText(value) {
   return String(value ?? '')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, ' ')
@@ -193,23 +193,88 @@ function collectSuggestionCandidates(events = []) {
   return [...candidates.values()]
 }
 
-export function buildSearchSuggestions(events, query, limit = 8) {
+export function buildTitleSuggestions(titleIndex = [], query, limit = 8) {
   const normalizedQuery = normalizeText(query)
   if (!normalizedQuery) return []
 
-  const candidates = collectSuggestionCandidates(events)
+  const scored = []
 
-  return candidates
-    .map((candidate) => {
-      const baseText = `${candidate.label} ${candidate.helper}`.trim()
-      const score = scoreSearchQuery(normalizedQuery, baseText)
-      const helperBoost = candidate.kind === 'event' ? 2 : candidate.kind === 'keyword' ? 1 : 0
-      return {
-        ...candidate,
-        score: score + helperBoost,
-      }
+  for (const item of titleIndex) {
+    const title = item?.title ?? ''
+    const normalizedTitle = item?.normalizedTitle ?? normalizeText(title)
+    if (!normalizedTitle) continue
+
+    let score = 0
+    if (normalizedTitle === normalizedQuery) {
+      score = 100
+    } else if (normalizedTitle.startsWith(normalizedQuery)) {
+      score = 90
+    } else if (normalizedTitle.includes(normalizedQuery)) {
+      score = 70
+    } else {
+      continue
+    }
+
+    scored.push({
+      value: title,
+      label: title,
+      kind: 'event',
+      helper: item?.helper ?? '',
+      score,
     })
+  }
+
+  return scored
     .filter((candidate) => candidate.score > 0)
+    .sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score
+      return a.label.localeCompare(b.label)
+    })
+    .slice(0, limit)
+}
+
+export function buildSearchSuggestions(events = [], query, limit = 8) {
+  const normalizedQuery = normalizeText(query)
+  if (!normalizedQuery) return []
+
+  const candidates = new Map()
+
+  const addCandidate = (candidate, score) => {
+    const label = String(candidate?.label ?? candidate?.value ?? '').trim()
+    const normalizedLabel = normalizeText(label)
+    if (!normalizedLabel) return
+
+    const existing = candidates.get(normalizedLabel)
+    if (!existing || score > existing.score) {
+      candidates.set(normalizedLabel, {
+        value: candidate?.value ?? label,
+        label,
+        kind: candidate?.kind ?? 'suggestion',
+        helper: candidate?.helper ?? '',
+        score,
+      })
+    }
+  }
+
+  const titleSuggestions = buildTitleSuggestions(
+    events.map((event) => ({
+      title: event?.title ?? '',
+      helper: event?.hostClub ?? '',
+    })),
+    normalizedQuery,
+    limit
+  )
+
+  titleSuggestions.forEach((candidate) => addCandidate(candidate, candidate.score))
+
+  collectSuggestionCandidates(events).forEach((candidate) => {
+    const labelScore = scoreSearchQuery(normalizedQuery, candidate.label)
+    if (labelScore > 0) {
+      addCandidate(candidate, labelScore)
+    }
+  })
+
+  return [...candidates.values()]
     .sort((a, b) => {
       if (b.score !== a.score) return b.score - a.score
       return a.label.localeCompare(b.label)

@@ -12,17 +12,34 @@
   }
 
   body {
-    background-color: #ffffff;
+    position: relative;
+    background: radial-gradient(circle at top, rgba(135, 119, 193, 0.12), transparent 34%), #f6f4fb;
     color: #2b1e28;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Roboto', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     min-height: 100vh;
+    overflow-x: hidden;
   }
 
   #root {
+    position: relative;
+    z-index: 1;
     min-height: 100vh;
   }
+
+  body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 1;
+  background-image: radial-gradient(circle at 1px 1px, rgba(100, 100, 120, 0.22) 1px, transparent 0);
+  background-size: 26px 26px;
+  background-position: 0 0;
+  mix-blend-mode: multiply;
+}
 
   /* Custom scrollbar */
   ::-webkit-scrollbar {

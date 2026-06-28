@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react'
+import React, { useEffect, useMemo, useRef, useState, useCallback, useDeferredValue } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import dayjs from 'dayjs'
 import isBetween from 'dayjs/plugin/isBetween'
@@ -39,6 +39,28 @@ export default function EventFeedPage() {
   // Track which event is expanded inline
   const [expandedEventId, setExpandedEventId] = useState(urlEventId ?? null)
   const detailRefs = useRef({})
+  const browseRef = useRef(null)
+
+  // committedQuery is set only on explicit Search/Enter — scoring never runs on raw typing
+  const [committedQuery, setCommittedQuery] = useState('')
+  const deferredQuery = useDeferredValue(committedQuery)
+  const isStale = committedQuery !== deferredQuery
+
+  // Spinner: true from commit until React finishes deferred render
+  const [isSearching, setIsSearching] = useState(false)
+  const scrollPendingRef = useRef(false)
+
+  useEffect(() => {
+    if (!isStale && isSearching) {
+      setIsSearching(false)
+      if (scrollPendingRef.current) {
+        scrollPendingRef.current = false
+        setTimeout(() => {
+          browseRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }, 80)
+      }
+    }
+  }, [isStale, isSearching])
 
   const [personalization, setPersonalization] = useState(() => loadPersonalizationPreferences())
   const [showPersonalizationModal, setShowPersonalizationModal] = useState(() => !loadPersonalizationPreferences().seen)
@@ -67,15 +89,20 @@ export default function EventFeedPage() {
     return [...set].sort()
   }, [events])
 
+  // Pre-compute search summaries once — avoids rebuilding per keystroke
+  const summaryIndex = useMemo(
+    () => events.map((event) => ({ event, summary: buildEventSearchSummary(event) })),
+    [events]
+  )
+
   const displayedEvents = useMemo(() => {
-    const q = searchQuery.toLowerCase().trim()
+    const q = deferredQuery.toLowerCase().trim()
     const now = dayjs()
 
-    const ranked = events
-      .map((event) => {
-        const summary = buildEventSearchSummary(event)
+    const ranked = summaryIndex
+      .map(({ event, summary }) => {
         const searchScore = q ? scoreSearchQuery(q, summary) : 0
-        return { event, searchScore, summary }
+        return { event, searchScore }
       })
       .filter(({ event, searchScore }) => {
         if (q && searchScore === 0) return false
@@ -100,7 +127,7 @@ export default function EventFeedPage() {
       })
 
     return ranked.map(({ event }) => event)
-  }, [events, searchQuery, filters])
+  }, [summaryIndex, deferredQuery, filters])
 
   const recommendedEvents = useMemo(() => {
     if (!selectedInterestIds.length) return []
@@ -121,6 +148,7 @@ export default function EventFeedPage() {
       .slice(0, RECOMMENDED_LIMIT)
   }, [events, selectedInterestIds])
 
+  // Suggestions scan titles against live typing (cheap). Scoring only runs on committedQuery.
   const searchSuggestions = useMemo(() => buildSearchSuggestions(events, searchQuery, 8), [events, searchQuery])
 
   const visibleEvents = displayedEvents.slice(0, page * PAGE_SIZE)
@@ -128,7 +156,29 @@ export default function EventFeedPage() {
   const hasRecommendations = selectedInterestIds.length > 0 && recommendedEvents.length > 0
   const hasPersonalization = selectedInterestIds.length > 0
 
-  const handleSearchChange = (value) => { setSearchQuery(value); setPage(1) }
+  // Typing: only update the display value — zero scoring cost
+  const handleSearchChange = (value) => {
+    setSearchQuery(value)
+  }
+
+  // Enter / Search button: commit the query and trigger scoring
+  const handleSearchCommit = (value) => {
+    const v = value ?? searchQuery
+    setSearchQuery(v)
+    setCommittedQuery(v)
+    setPage(1)
+    if (v.trim()) {
+      setIsSearching(true)
+      scrollPendingRef.current = true
+    }
+  }
+
+  const handleSearchClear = () => {
+    setSearchQuery('')
+    setCommittedQuery('')
+    setPage(1)
+  }
+
   const handleFilterChange = (newFilters) => { setFilters(newFilters); setPage(1) }
 
   // Toggle inline expansion; update URL too so deep-links still work
@@ -193,8 +243,11 @@ export default function EventFeedPage() {
           <SearchBar
             value={searchQuery}
             onChange={handleSearchChange}
+            onSearch={handleSearchCommit}
+            onClear={handleSearchClear}
             suggestions={searchSuggestions}
-            onSuggestionClick={(suggestion) => handleSearchChange(suggestion)}
+            onSuggestionClick={(suggestion) => handleSearchCommit(suggestion)}
+            isSearching={isSearching}
           />
         </div>
       </div>
@@ -256,14 +309,35 @@ export default function EventFeedPage() {
                 Reset preferences
               </button>
             </div>
-            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+            <div className="space-y-3">
               {recommendedEvents.map((event) => (
-                <StackEventCard
-                  key={event.id}
-                  event={event}
-                  isBookmarked={bookmarkedIds.has(event.id)}
-                  onBookmark={() => toggleBookmark(event.id)}
-                />
+                <React.Fragment key={event.id}>
+                  <div
+                    className="cursor-pointer"
+                    onClick={() => handleCardClick(event.id)}
+                  >
+                    <StackEventCard
+                      event={event}
+                      isBookmarked={bookmarkedIds.has(event.id)}
+                      onBookmark={(e) => { e?.stopPropagation?.(); toggleBookmark(event.id) }}
+                      onViewDetails={() => handleCardClick(event.id)}
+                      isExpanded={expandedEventId === event.id}
+                    />
+                  </div>
+                  {expandedEventId === event.id && (
+                    <div
+                      ref={(el) => { detailRefs.current[event.id] = el }}
+                      className="rounded-3xl border border-accent/25 bg-white/95 backdrop-blur-md overflow-hidden shadow-[0_8px_40px_rgba(232,111,164,0.10)] animate-expand"
+                    >
+                      <InlineEventDetail
+                        event={event}
+                        isBookmarked={bookmarkedIds.has(event.id)}
+                        onBookmark={() => toggleBookmark(event.id)}
+                        onClose={() => handleCardClick(event.id)}
+                      />
+                    </div>
+                  )}
+                </React.Fragment>
               ))}
             </div>
           </section>
@@ -286,13 +360,15 @@ export default function EventFeedPage() {
           </section>
         )}
 
-        <section className="mb-4">
+        <section ref={browseRef} className="mb-4">
           <div className="flex items-end justify-between gap-3 mb-5">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9f3868]">Catalogue</p>
               <h2 className="font-display font-bold text-2xl sm:text-3xl text-ink">Browse All Events</h2>
             </div>
-            <span className="text-sm text-ink-dim">{displayedEvents.length.toLocaleString()} events</span>
+            <span className={`text-sm transition-opacity ${isStale ? 'opacity-40' : 'opacity-100'} text-ink-dim`}>
+              {isStale ? 'Searching…' : `${displayedEvents.length.toLocaleString()} events`}
+            </span>
           </div>
         </section>
 
@@ -325,6 +401,7 @@ export default function EventFeedPage() {
                         e?.stopPropagation?.()
                         toggleBookmark(event.id)
                       }}
+                      onViewDetails={() => handleCardClick(event.id)}
                       isExpanded={expandedEventId === event.id}
                     />
                   </div>
