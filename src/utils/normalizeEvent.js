@@ -146,30 +146,42 @@ export function normalizeEvent(raw) {
 
   const createdAt = parseEventDate(raw.created_at)
 
-  return {
-    id,
-    title,
-    hostClub,
-    description,
-    startTime,
-    endTime,
-    isCancelled,
-    requiresTicket,
-    location: {
-      summary: locationSummary,
-      building,
-      roomNumber,
-      floor,
-      coordinates,
-    },
-    tags,
-    contactEmail,
-    socials,
-    capacity: {
-      current: currentReg,
-      max: maxCap,
-      isFull,
-    },
-    createdAt,
-  }
+  const registrationUrl = typeof raw.registration_url === 'string' && raw.registration_url.trim() !== ''
+  ? raw.registration_url.trim()
+  : null
+
+const type = typeof raw.event_type === 'string' && raw.event_type.trim() !== ''
+  ? raw.event_type.trim()
+  : typeof raw.type === 'string' && raw.type.trim() !== ''
+  ? raw.type.trim()
+  : null
+
+ return {
+  id,
+  title,
+  hostClub,
+  description,
+  type,           // add this
+  startTime,
+  endTime,
+  isCancelled,
+  requiresTicket,
+  registrationUrl, // add this
+  location: {
+    summary: locationSummary,
+    building,
+    roomNumber,
+    floor,
+    coordinates,
+  },
+  tags,
+  contactEmail,
+  socials,
+  capacity: {
+    current: currentReg,
+    max: maxCap,
+    isFull,
+  },
+  createdAt,
+}
 }

@@ -92,22 +92,33 @@ export default function StackEventCard({ event, isBookmarked, onBookmark, onView
           {/* Top Header */}
           <div className="flex justify-between items-start gap-4">
             <div className="flex flex-wrap gap-2 items-center">
-              {event.type && (
-                <span className="text-xs font-semibold uppercase tracking-wider px-2.5 py-1 rounded-md border bg-subtle text-ink-dim border-border">
-                  {event.type}
-                </span>
-              )}
-              {event.isCancelled && (
-                <span className="text-xs font-semibold uppercase tracking-wider px-2.5 py-1 rounded-md bg-red-500/10 text-red-500 border border-red-500/20">
-                  Cancelled
-                </span>
-              )}
-              {event.capacity?.isFull && !event.isCancelled && (
-                <span className="text-xs font-semibold uppercase tracking-wider px-2.5 py-1 rounded-md bg-yellow-500/10 text-yellow-500 border border-yellow-500/20">
-                  Full
-                </span>
-              )}
-            </div>
+  {event.type && (
+    <span className="text-xs font-semibold uppercase tracking-wider px-2.5 py-1 rounded-md border bg-subtle text-ink-dim border-border">
+      {event.type}
+    </span>
+  )}
+  {event.isCancelled && (
+    <span className="text-xs font-semibold uppercase tracking-wider px-2.5 py-1 rounded-md bg-red-500/10 text-red-500 border border-red-500/20">
+      Cancelled
+    </span>
+  )}
+  {event.capacity?.isFull && !event.isCancelled && (
+    <span className="text-xs font-semibold uppercase tracking-wider px-2.5 py-1 rounded-md bg-yellow-500/10 text-yellow-500 border border-yellow-500/20">
+      Full
+    </span>
+  )}
+  {event.registrationUrl && !event.isCancelled && (
+    <a
+      href={event.registrationUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={(e) => e.stopPropagation()}
+      className="text-xs font-semibold uppercase tracking-wider px-2.5 py-1 rounded-md bg-accent/10 text-accent border border-accent/20 hover:bg-accent hover:text-white transition-colors"
+    >
+      Register →
+    </a>
+  )}
+</div>
 
             <div className="flex items-center gap-2 shrink-0 relative z-30">
               <button
