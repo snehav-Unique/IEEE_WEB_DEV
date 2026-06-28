@@ -59,7 +59,7 @@ export default function App() {
         onJoinClick={() => setShowJoinModal(true)}
       />
 
-      <main className="pt-24 pb-16 pl-[7rem] sm:pl-[8rem] lg:pl-[8.5rem]">
+      <main className="pt-24 pb-16 pl-[6.25rem] sm:pl-[6.75rem] lg:pl-[7rem]">
         <Routes>
           <Route path="/" element={<Navigate to="/events" replace />} />
           <Route path="/events" element={<EventFeedPage />} />

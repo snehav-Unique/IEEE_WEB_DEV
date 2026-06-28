@@ -1,4 +1,4 @@
-import { useLocation, Link, NavLink } from 'react-router-dom'
+import { useLocation, Link, NavLink, useNavigate } from 'react-router-dom'
 import {
   IoBookmark,
   IoBookmarkOutline,
@@ -19,8 +19,14 @@ const CardNav = ({
   onJoinClick,
 }) => {
   const location = useLocation()
+  const navigate = useNavigate()
   const path = location.pathname
-  const scrollToTop = () => {
+  const handleHomeClick = () => {
+    if (path !== '/events') {
+      navigate('/events')
+      return
+    }
+
     window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })
   }
 
@@ -40,10 +46,11 @@ const CardNav = ({
             <button
               type="button"
               className="card-nav-tab"
-              onClick={scrollToTop}
+              onClick={handleHomeClick}
               title="Home"
+              aria-label="Home"
             >
-              {path === '/' ? (
+              {path === '/events' ? (
                 <IoHome className="w-5 h-5" />
               ) : (
                 <IoHomeOutline className="w-5 h-5" />

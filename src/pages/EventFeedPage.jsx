@@ -79,9 +79,11 @@ export default function EventFeedPage() {
     if (location.pathname !== '/events') return
 
     const target =
-      location.hash === '#recommended'
+      location.hash === '#browse'
+        ? browseRef.current
+        : location.hash === '#recommended'
         ? recommendedRef.current
-        : browseRef.current
+        : null
 
     if (!target) return
 
@@ -204,13 +206,15 @@ export default function EventFeedPage() {
   const handleCardClick = useCallback((eventId) => {
     const next = expandedEventId === eventId ? null : eventId
     setExpandedEventId(next)
-    navigate(next ? `/event/${next}` : '/events', { replace: true })
 
-    // Only scroll when opening, not when collapsing
     if (next) {
+      navigate(`/event/${next}`, { replace: true })
       setTimeout(() => {
         detailRefs.current[next]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
       }, 50)
+    } else {
+      // On collapse, update URL silently without triggering location effect
+      window.history.replaceState(null, '', '/events')
     }
   }, [expandedEventId, navigate])
 
@@ -235,7 +239,9 @@ export default function EventFeedPage() {
       const nextInterests = currentInterests.includes(interestId)
         ? currentInterests.filter((id) => id !== interestId)
         : [...currentInterests, interestId]
-      return { ...current, interests: nextInterests }
+      const nextPreferences = { ...current, interests: nextInterests }
+      savePersonalizationPreferences(nextPreferences)
+      return nextPreferences
     })
   }
 
@@ -252,8 +258,7 @@ export default function EventFeedPage() {
       <PersonalizationModal
         open={showPersonalizationModal}
         selectedInterestIds={personalization.interests ?? []}
-        onToggleInterest={handleTogglePersonalization}
-        onContinue={() => handleContinuePersonalization(personalization.interests ?? [])}
+        onContinue={handleContinuePersonalization}
         onSkip={handleSkipPersonalization}
       />
 
@@ -548,16 +553,17 @@ function InlineEventDetail({ event, isBookmarked, onBookmark, onClose }) {
             {isBookmarked ? '🔖 Remove Bookmark' : '🔖 Bookmark Event'}
           </button>
 
-{event.registrationUrl && (
-  <a
-    href={event.registrationUrl}
-    target="_blank"
-    rel="noopener noreferrer"
-    className="block w-full px-4 py-3 rounded-xl bg-accent text-white text-sm font-semibold text-center hover:bg-accent-dim transition-colors shadow-[0_6px_20px_rgba(232,111,164,0.2)]"
-  >
-    Register →
-  </a>
-)}
+          {event.registrationUrl && (
+            <a
+              href={event.registrationUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block w-full px-4 py-3 rounded-xl bg-accent text-white text-sm font-semibold text-center hover:bg-accent-dim transition-colors shadow-[0_6px_20px_rgba(232,111,164,0.2)]"
+            >
+              Register →
+            </a>
+          )}
+
           <button
             type="button"
             onClick={onClose}

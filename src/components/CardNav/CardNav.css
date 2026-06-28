@@ -1,9 +1,9 @@
 .card-nav-container {
   position: fixed;
-  top: 1rem;
-  left: 1rem;
-  width: 90px;
-  height: calc(100vh - 2rem);
+  top: 0.875rem;
+  left: 0.875rem;
+  width: 82px;
+  height: calc(100vh - 1.75rem);
   z-index: 99;
   box-sizing: border-box;
 }
@@ -23,8 +23,8 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  padding: 1rem 0.75rem;
-  border-radius: 28px;
+  padding: 0.85rem 0.65rem;
+  border-radius: 24px;
 }
 
 .card-nav-shell {
@@ -37,16 +37,16 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding: 1rem 0.75rem;
-  gap: 1rem;
+  padding: 0.85rem 0.65rem;
+  gap: 0.85rem;
 }
 
 .logo {
-  height: 28px;
+  height: 24px;
 }
 
 .logo--docked {
-  height: 24px;
+  height: 22px;
 }
 
 .logo-text {
@@ -74,9 +74,9 @@
 
 .card-nav-tabs--docked {
   flex-direction: column;
-  gap: 0.35rem;
-  border-radius: 22px;
-  padding: 0.4rem;
+  gap: 0.3rem;
+  border-radius: 18px;
+  padding: 0.3rem;
   width: 100%;
 }
 
@@ -85,8 +85,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 2.25rem;
+  height: 2.25rem;
   border-radius: 9999px;
   color: rgba(125, 99, 114, 0.82);
   transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
@@ -134,9 +134,9 @@
   color: white;
   border: 1px solid #e86fa4;
   border-radius: 9999px;
-  padding: 0 1.05rem;
-  height: 38px;
-  font-size: 0.8rem;
+  padding: 0 0.85rem;
+  height: 34px;
+  font-size: 0.74rem;
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease, width 0.25s ease;
@@ -158,33 +158,33 @@
 
 .card-nav-shell--docked .card-nav-cta-button {
   width: 100%;
-  height: 34px;
-  font-size: 0.72rem;
-  padding: 0 0.5rem;
-  border-radius: 14px;
+  height: 32px;
+  font-size: 0.68rem;
+  padding: 0 0.45rem;
+  border-radius: 12px;
   margin-top: auto;
 }
 
 @media (max-width: 640px) {
   .card-nav-container {
-    left: 0.75rem;
-    top: 0.75rem;
-    width: 78px;
-    height: calc(100vh - 1.5rem);
+    left: 0.65rem;
+    top: 0.65rem;
+    width: 74px;
+    height: calc(100vh - 1.3rem);
   }
 
   .logo-text {
-    font-size: 0.95rem;
+    font-size: 0.88rem;
   }
 
   .card-nav-tab {
-    width: 2.25rem;
-    height: 2.25rem;
+    width: 2rem;
+    height: 2rem;
   }
 
   .card-nav-cta-button {
-    padding: 0 0.85rem;
-    height: 32px;
-    font-size: 0.72rem;
+    padding: 0 0.75rem;
+    height: 30px;
+    font-size: 0.66rem;
   }
 }
