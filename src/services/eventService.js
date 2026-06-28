@@ -1,33 +1,28 @@
 import { normalizeEvent } from '../utils/normalizeEvent'
 
 /**
- * Loads and normalizes the events dataset.
+ * Loads and normalizes the events dataset at runtime.
  *
- * Reads VITE_DATA_SOURCE at runtime:
- *   - If it looks like a URL (starts with http:// or https://), fetch from network.
- *   - Otherwise treat as a local path (e.g. /events.json served from /public).
- *
- * In both cases, the raw JSON is fetched via the native fetch API and then
- * run through the normalization pipeline. The source file is never modified.
+ * The source can be a remote URL or a runtime-served local path. The JSON is
+ * never imported or bundled, and the original file is left untouched.
  *
  * Returns an array of NormalizedEvent objects.
  * Throws on network/parse failure so callers can show an error state.
  */
 export async function fetchEvents() {
-  const source = import.meta.env.VITE_DATA_SOURCE
+  const source = import.meta.env.VITE_DATA_SOURCE?.trim() || '/events.json'
 
-  if (!source) {
-    throw new Error(
-      'VITE_DATA_SOURCE is not set. Add it to your .env file. ' +
-        'It should be a URL or a path like /events.json.'
-    )
-  }
+  const resolvedSource = source.startsWith('http')
+    ? source
+    : source.startsWith('/')
+      ? source
+      : `/${source}`
 
-  const response = await fetch(source)
+  const response = await fetch(resolvedSource)
 
   if (!response.ok) {
     throw new Error(
-      `Failed to load events: ${response.status} ${response.statusText} (source: ${source})`
+      `Failed to load events: ${response.status} ${response.statusText} (source: ${resolvedSource})`
     )
   }
 
