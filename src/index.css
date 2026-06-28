@@ -28,17 +28,16 @@
     min-height: 100vh;
   }
 
-  body::before {
+body::before {
   content: '';
   position: fixed;
   inset: 0;
   pointer-events: none;
-  z-index: 0;
-  opacity: 0.18;
-  background-image: radial-gradient(circle at 1px 1px, rgba(100, 100, 120, 0.22) 1px, transparent 0);
-  background-size: 26px 26px;
+  z-index: 9999;
+  opacity: 0.35;
+  background-image: radial-gradient(circle, rgba(120, 120, 120, 0.5) 1.15px, transparent 1.2px);
+  background-size: 24px 24px;
   background-position: 0 0;
-  mix-blend-mode: multiply;
 }
 
   /* Custom scrollbar */
