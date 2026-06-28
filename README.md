@@ -48,7 +48,7 @@ Make a copy of the .env.example to the new env.local by creating it
 Create a `.env.local` file in the project root:
 
 ```bash
-VITE_DATA_SOURCE=events.json
+VITE_DATA_SOURCE=/events.json
 ```
 
 Place `events.json` in the `public/` directory if you are using a local dataset.
