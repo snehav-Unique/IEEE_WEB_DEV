@@ -6,7 +6,7 @@ import EventFeedPage from './pages/EventFeedPage'
 import BookmarksPage from './pages/BookmarksPage'
 
 export default function App() {
-  const { bookmarkedIds } = useEvents()
+  const { events, loading, bookmarkedIds } = useEvents()
   const [showJoinModal, setShowJoinModal] = useState(false)
   const bookmarkCount = bookmarkedIds ? bookmarkedIds.size : 0
 

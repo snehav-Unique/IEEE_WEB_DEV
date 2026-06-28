@@ -1,10 +1,12 @@
 import { useLocation, Link, NavLink } from 'react-router-dom'
 import {
-  IoDocumentText,
   IoBookmark,
   IoBookmarkOutline,
   IoCalendarOutline,
-  IoDocumentTextOutline
+  IoHome,
+  IoHomeOutline,
+  IoStar,
+  IoStarOutline,
 } from 'react-icons/io5'
 import './CardNav.css'
 
@@ -18,10 +20,9 @@ const CardNav = ({
 }) => {
   const location = useLocation()
   const path = location.pathname
-
-  const lastViewedEventId = localStorage.getItem('lastViewedEventId')
-  const detailsPath = lastViewedEventId ? `/event/${lastViewedEventId}` : null
-  const isDetailsDisabled = !detailsPath
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })
+  }
 
   return (
     <div className="card-nav-container">
@@ -36,31 +37,42 @@ const CardNav = ({
           </Link>
 
           <div className="card-nav-tabs card-nav-tabs--docked">
+            <button
+              type="button"
+              className="card-nav-tab"
+              onClick={scrollToTop}
+              title="Home"
+            >
+              {path === '/' ? (
+                <IoHome className="w-5 h-5" />
+              ) : (
+                <IoHomeOutline className="w-5 h-5" />
+              )}
+            </button>
+
             <NavLink
-              to="/events"
+              to="/events#browse"
               className={({ isActive }) =>
-                `card-nav-tab ${isActive ? 'is-active' : ''}`
+                `card-nav-tab ${isActive && path === '/events' ? 'is-active' : ''}`
               }
               title="Events Feed"
             >
               <IoCalendarOutline className="w-5 h-5" />
             </NavLink>
 
-            {isDetailsDisabled ? (
-              <div className="card-nav-tab is-disabled" title="No event viewed yet">
-                <IoDocumentTextOutline className="w-5 h-5" />
-              </div>
-            ) : (
-              <NavLink
-                to={detailsPath}
-                className={({ isActive }) =>
-                  `card-nav-tab ${(isActive || path.startsWith('/event/')) ? 'is-active' : ''}`
-                }
-                title="Event Details"
-              >
-                {path.startsWith('/event/') ? <IoDocumentText className="w-5 h-5" /> : <IoDocumentTextOutline className="w-5 h-5" />}
-              </NavLink>
-            )}
+            <NavLink
+              to="/events#recommended"
+              className={({ isActive }) =>
+                `card-nav-tab ${isActive && path === '/events' && location.hash === '#recommended' ? 'is-active' : ''}`
+              }
+              title="Recommended Events"
+            >
+              {path === '/events' && location.hash === '#recommended' ? (
+                <IoStar className="w-5 h-5" />
+              ) : (
+                <IoStarOutline className="w-5 h-5" />
+              )}
+            </NavLink>
 
             <NavLink
               to="/bookmarks"

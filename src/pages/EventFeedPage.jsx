@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback, useDeferredValue } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import dayjs from 'dayjs'
 import isBetween from 'dayjs/plugin/isBetween'
 import { useEvents } from '../context/EventsContext'
@@ -32,21 +32,20 @@ const RECOMMENDED_LIMIT = 6
 export default function EventFeedPage() {
   const { id: urlEventId } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const { events, loading, error, bookmarkedIds, toggleBookmark } = useEvents()
   const [searchQuery, setSearchQuery] = useState('')
   const [filters, setFilters] = useState({ type: '', dateRange: 'all' })
   const [page, setPage] = useState(1)
-  // Track which event is expanded inline
   const [expandedEventId, setExpandedEventId] = useState(urlEventId ?? null)
   const detailRefs = useRef({})
   const browseRef = useRef(null)
+  const recommendedRef = useRef(null)
 
-  // committedQuery is set only on explicit Search/Enter — scoring never runs on raw typing
   const [committedQuery, setCommittedQuery] = useState('')
   const deferredQuery = useDeferredValue(committedQuery)
   const isStale = committedQuery !== deferredQuery
 
-  // Spinner: true from commit until React finishes deferred render
   const [isSearching, setIsSearching] = useState(false)
   const scrollPendingRef = useRef(false)
 
@@ -65,7 +64,6 @@ export default function EventFeedPage() {
   const [personalization, setPersonalization] = useState(() => loadPersonalizationPreferences())
   const [showPersonalizationModal, setShowPersonalizationModal] = useState(() => !loadPersonalizationPreferences().seen)
 
-  // Sync URL param → expanded state on initial load
   useEffect(() => {
     if (urlEventId) setExpandedEventId(urlEventId)
   }, [urlEventId])
@@ -76,6 +74,23 @@ export default function EventFeedPage() {
       setShowPersonalizationModal(true)
     }
   }, [loading, personalization.seen, showPersonalizationModal])
+
+  useEffect(() => {
+    if (location.pathname !== '/events') return
+
+    const target =
+      location.hash === '#recommended'
+        ? recommendedRef.current
+        : browseRef.current
+
+    if (!target) return
+
+    const timer = setTimeout(() => {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 0)
+
+    return () => clearTimeout(timer)
+  }, [location.pathname, location.hash, loading])
 
   const selectedInterestIds = personalization.interests ?? []
   const selectedInterests = useMemo(
@@ -89,7 +104,6 @@ export default function EventFeedPage() {
     return [...set].sort()
   }, [events])
 
-  // Pre-compute search summaries once — avoids rebuilding per keystroke
   const summaryIndex = useMemo(
     () => events.map((event) => ({ event, summary: buildEventSearchSummary(event) })),
     [events]
@@ -148,7 +162,6 @@ export default function EventFeedPage() {
       .slice(0, RECOMMENDED_LIMIT)
   }, [events, selectedInterestIds])
 
-  // Suggestions scan titles against live typing (cheap). Scoring only runs on committedQuery.
   const searchSuggestions = useMemo(() => buildSearchSuggestions(events, searchQuery, 8), [events, searchQuery])
 
   const visibleEvents = displayedEvents.slice(0, page * PAGE_SIZE)
@@ -156,12 +169,10 @@ export default function EventFeedPage() {
   const hasRecommendations = selectedInterestIds.length > 0 && recommendedEvents.length > 0
   const hasPersonalization = selectedInterestIds.length > 0
 
-  // Typing: only update the display value — zero scoring cost
   const handleSearchChange = (value) => {
     setSearchQuery(value)
   }
 
-  // Enter / Search button: commit the query and trigger scoring
   const handleSearchCommit = (value) => {
     const v = value ?? searchQuery
     setSearchQuery(v)
@@ -179,15 +190,23 @@ export default function EventFeedPage() {
     setPage(1)
   }
 
-  const handleFilterChange = (newFilters) => { setFilters(newFilters); setPage(1) }
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters)
+    setPage(1)
+    const hasFilter = newFilters.type || (newFilters.dateRange && newFilters.dateRange !== 'all')
+    if (hasFilter) {
+      setTimeout(() => {
+        browseRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 80)
+    }
+  }
 
-  // Toggle inline expansion; update URL too so deep-links still work
   const handleCardClick = useCallback((eventId) => {
     const next = expandedEventId === eventId ? null : eventId
     setExpandedEventId(next)
     navigate(next ? `/event/${next}` : '/events', { replace: true })
 
-    // Scroll to the detail panel after a short delay for render
+    // Only scroll when opening, not when collapsing
     if (next) {
       setTimeout(() => {
         detailRefs.current[next]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
@@ -270,97 +289,99 @@ export default function EventFeedPage() {
           </div>
         </div>
 
-        {!hasPersonalization && (
-          <div className="mb-8 rounded-[1.75rem] border border-border bg-[#fff8fb] p-5 shadow-sm">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9f3868]">Recommended Events</p>
-                <h2 className="mt-1 font-display text-2xl font-bold text-ink">Turn on personalized recommendations</h2>
-                <p className="mt-2 text-sm text-[#5f4453] max-w-2xl">
-                  Pick a few interests to surface events that match what you like most, while keeping the full catalogue available below.
-                </p>
+        <div ref={recommendedRef}>
+          {!hasPersonalization && (
+            <div className="mb-8 rounded-[1.75rem] border border-border bg-[#fff8fb] p-5 shadow-sm">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9f3868]">Recommended Events</p>
+                  <h2 className="mt-1 font-display text-2xl font-bold text-ink">Turn on personalized recommendations</h2>
+                  <p className="mt-2 text-sm text-[#5f4453] max-w-2xl">
+                    Pick a few interests to surface events that match what you like most, while keeping the full catalogue available below.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowPersonalizationModal(true)}
+                  className="px-5 py-3 rounded-xl border border-accent bg-accent text-white font-semibold shadow-[0_10px_24px_rgba(232,111,164,0.24)] hover:bg-accent-dim transition-colors"
+                >
+                  Choose interests
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => setShowPersonalizationModal(true)}
-                className="px-5 py-3 rounded-xl border border-accent bg-accent text-white font-semibold shadow-[0_10px_24px_rgba(232,111,164,0.24)] hover:bg-accent-dim transition-colors"
-              >
-                Choose interests
-              </button>
             </div>
-          </div>
-        )}
+          )}
 
-        {hasRecommendations && (
-          <section className="mb-12">
-            <div className="flex flex-wrap items-end justify-between gap-3 mb-5">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9f3868]">Tailored for you</p>
-                <h2 className="font-display font-bold text-2xl sm:text-3xl text-ink">⭐ Recommended Events</h2>
-                <p className="mt-1 text-sm text-ink-dim">
-                  Based on {selectedInterests.map((i) => i.label).join(', ')}.
-                </p>
+          {hasRecommendations && (
+            <section className="mb-12">
+              <div className="flex flex-wrap items-end justify-between gap-3 mb-5">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9f3868]">Tailored for you</p>
+                  <h2 className="font-display font-bold text-2xl sm:text-3xl text-ink">⭐ Recommended Events</h2>
+                  <p className="mt-1 text-sm text-ink-dim">
+                    Based on {selectedInterests.map((i) => i.label).join(', ')}.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleResetPersonalization}
+                  className="px-4 py-2 rounded-full border border-border bg-white text-ink-dim text-sm font-semibold hover:border-accent hover:text-accent transition-colors"
+                >
+                  Reset preferences
+                </button>
               </div>
+              <div className="space-y-3">
+                {recommendedEvents.map((event) => (
+                  <React.Fragment key={event.id}>
+                    <div
+                      className="cursor-pointer"
+                      onClick={() => handleCardClick(event.id)}
+                    >
+                      <StackEventCard
+                        event={event}
+                        isBookmarked={bookmarkedIds.has(event.id)}
+                        onBookmark={(e) => { e?.stopPropagation?.(); toggleBookmark(event.id) }}
+                        onViewDetails={() => handleCardClick(event.id)}
+                        isExpanded={expandedEventId === event.id}
+                      />
+                    </div>
+                    {expandedEventId === event.id && (
+                      <div
+                        ref={(el) => { detailRefs.current[event.id] = el }}
+                        className="rounded-3xl border border-accent/25 bg-white/95 backdrop-blur-md overflow-hidden shadow-[0_8px_40px_rgba(232,111,164,0.10)] animate-expand"
+                      >
+                        <InlineEventDetail
+                          event={event}
+                          isBookmarked={bookmarkedIds.has(event.id)}
+                          onBookmark={() => toggleBookmark(event.id)}
+                          onClose={() => handleCardClick(event.id)}
+                        />
+                      </div>
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {hasPersonalization && !hasRecommendations && !loading && (
+            <section className="mb-12 rounded-[1.75rem] border border-border bg-white p-6 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9f3868]">Recommended Events</p>
+              <h2 className="mt-1 font-display font-bold text-2xl text-ink">We are still learning your preferences</h2>
+              <p className="mt-2 text-sm text-[#5f4453]">
+                We could not find a strong match yet, but the full event feed is still available below. You can update your interests anytime.
+              </p>
               <button
                 type="button"
                 onClick={handleResetPersonalization}
-                className="px-4 py-2 rounded-full border border-border bg-white text-ink-dim text-sm font-semibold hover:border-accent hover:text-accent transition-colors"
+                className="mt-4 px-5 py-3 rounded-xl border border-accent bg-accent text-white font-semibold hover:bg-accent-dim transition-colors"
               >
-                Reset preferences
+                Update interests
               </button>
-            </div>
-            <div className="space-y-3">
-              {recommendedEvents.map((event) => (
-                <React.Fragment key={event.id}>
-                  <div
-                    className="cursor-pointer"
-                    onClick={() => handleCardClick(event.id)}
-                  >
-                    <StackEventCard
-                      event={event}
-                      isBookmarked={bookmarkedIds.has(event.id)}
-                      onBookmark={(e) => { e?.stopPropagation?.(); toggleBookmark(event.id) }}
-                      onViewDetails={() => handleCardClick(event.id)}
-                      isExpanded={expandedEventId === event.id}
-                    />
-                  </div>
-                  {expandedEventId === event.id && (
-                    <div
-                      ref={(el) => { detailRefs.current[event.id] = el }}
-                      className="rounded-3xl border border-accent/25 bg-white/95 backdrop-blur-md overflow-hidden shadow-[0_8px_40px_rgba(232,111,164,0.10)] animate-expand"
-                    >
-                      <InlineEventDetail
-                        event={event}
-                        isBookmarked={bookmarkedIds.has(event.id)}
-                        onBookmark={() => toggleBookmark(event.id)}
-                        onClose={() => handleCardClick(event.id)}
-                      />
-                    </div>
-                  )}
-                </React.Fragment>
-              ))}
-            </div>
-          </section>
-        )}
+            </section>
+          )}
+        </div>
 
-        {hasPersonalization && !hasRecommendations && !loading && (
-          <section className="mb-12 rounded-[1.75rem] border border-border bg-white p-6 shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9f3868]">Recommended Events</p>
-            <h2 className="mt-1 font-display font-bold text-2xl text-ink">We are still learning your preferences</h2>
-            <p className="mt-2 text-sm text-[#5f4453]">
-              We could not find a strong match yet, but the full event feed is still available below. You can update your interests anytime.
-            </p>
-            <button
-              type="button"
-              onClick={handleResetPersonalization}
-              className="mt-4 px-5 py-3 rounded-xl border border-accent bg-accent text-white font-semibold hover:bg-accent-dim transition-colors"
-            >
-              Update interests
-            </button>
-          </section>
-        )}
-
-        <section ref={browseRef} className="mb-4">
+        <section ref={browseRef} id="browse" className="mb-4">
           <div className="flex items-end justify-between gap-3 mb-5">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9f3868]">Catalogue</p>
@@ -385,11 +406,9 @@ export default function EventFeedPage() {
           />
         ) : (
           <>
-            {/* Inline list — cards + detail panels interleaved */}
             <div className="space-y-3">
               {visibleEvents.map((event) => (
                 <React.Fragment key={event.id}>
-                  {/* Card — clicking anywhere on it toggles detail */}
                   <div
                     className="cursor-pointer"
                     onClick={() => handleCardClick(event.id)}
@@ -406,7 +425,6 @@ export default function EventFeedPage() {
                     />
                   </div>
 
-                  {/* Inline detail panel — shown immediately after the clicked card */}
                   {expandedEventId === event.id && (
                     <div
                       ref={(el) => { detailRefs.current[event.id] = el }}
@@ -441,9 +459,6 @@ export default function EventFeedPage() {
   )
 }
 
-// ---------------------------------------------------------------------------
-// Inline detail panel — renders right after the card in the list
-// ---------------------------------------------------------------------------
 function InlineEventDetail({ event, isBookmarked, onBookmark, onClose }) {
   const start = event.startTime ? dayjs(event.startTime) : null
   const end = event.endTime ? dayjs(event.endTime) : null
@@ -455,7 +470,6 @@ function InlineEventDetail({ event, isBookmarked, onBookmark, onClose }) {
 
   return (
     <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)]">
-      {/* Left: details */}
       <div className="p-6 sm:p-8 space-y-5">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs uppercase tracking-widest text-accent font-semibold">Event Details</span>
@@ -522,7 +536,6 @@ function InlineEventDetail({ event, isBookmarked, onBookmark, onClose }) {
         )}
       </div>
 
-      {/* Right: actions */}
       <div className="p-6 sm:p-8 border-t lg:border-t-0 lg:border-l border-border/70 bg-[#fff8fb] flex items-start justify-center pt-8">
         <div className="w-full max-w-xs rounded-2xl border border-border bg-white p-5 shadow-sm space-y-4">
           <p className="text-[11px] uppercase tracking-[0.2em] text-ink-dim">Quick actions</p>
@@ -535,17 +548,16 @@ function InlineEventDetail({ event, isBookmarked, onBookmark, onClose }) {
             {isBookmarked ? '🔖 Remove Bookmark' : '🔖 Bookmark Event'}
           </button>
 
-          {event.registrationUrl && (
-            <a
-              href={event.registrationUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block w-full px-4 py-3 rounded-xl bg-accent text-white text-sm font-semibold text-center hover:bg-accent-dim transition-colors shadow-[0_6px_20px_rgba(232,111,164,0.2)]"
-            >
-              Register →
-            </a>
-          )}
-
+{event.registrationUrl && (
+  <a
+    href={event.registrationUrl}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="block w-full px-4 py-3 rounded-xl bg-accent text-white text-sm font-semibold text-center hover:bg-accent-dim transition-colors shadow-[0_6px_20px_rgba(232,111,164,0.2)]"
+  >
+    Register →
+  </a>
+)}
           <button
             type="button"
             onClick={onClose}

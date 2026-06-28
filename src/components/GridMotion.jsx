@@ -40,12 +40,12 @@ const GridMotion = ({ items = [], gradientColor = 'black' }) => {
       })
     }
 
-    const removeAnimationLoop = gsap.ticker.add(updateMotion)
+    gsap.ticker.add(updateMotion)
     window.addEventListener('mousemove', handleMouseMove)
 
     return () => {
       window.removeEventListener('mousemove', handleMouseMove)
-      removeAnimationLoop()
+      gsap.ticker.remove(updateMotion)
     }
   }, [])
 

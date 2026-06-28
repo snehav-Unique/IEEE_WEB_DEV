@@ -73,7 +73,7 @@ export default function HomePage({ events, loading }) {
           RVCE<span className="text-accent"> Events</span>
         </span>
         <button
-          onClick={() => navigate('/feed')}
+          onClick={() => navigate('/events')}
           className="text-sm font-display font-medium text-ink-dim hover:text-ink transition-colors"
         >
           Browse All →
@@ -165,7 +165,7 @@ export default function HomePage({ events, loading }) {
 
                 {/* CTA */}
                 <button
-                  onClick={() => navigate('/feed')}
+                  onClick={() => navigate('/events')}
                   className="mt-2 px-6 py-2.5 rounded-full bg-accent hover:bg-accent-dim text-white text-sm font-display font-medium transition-all duration-200 glow-ring-strong hover:scale-105 active:scale-100"
                 >
                   Explore Events
