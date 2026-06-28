@@ -21,7 +21,6 @@ export default function StarBorder({
       }}
       {...rest}
     >
-      <div className="star-border-glow" />
       <div className="star-border-content">
         {children}
       </div>

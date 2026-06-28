@@ -25,8 +25,8 @@ export default function FilterBar({ filters, onFilterChange, eventTypes = [] }) 
         id="filter-type"
         value={filters.type || ''}
         onChange={(e) => setType(e.target.value)}
-        className="px-3 py-2 rounded-xl border border-border bg-panel text-ink text-sm
-                   focus:outline-none focus:ring-2 focus:ring-accent cursor-pointer"
+        className="px-3 py-2 rounded-xl border border-border bg-white text-ink text-sm
+                   focus:outline-none focus:ring-2 focus:ring-[#f2a8c6] cursor-pointer"
       >
         <option value="">All types</option>
         {eventTypes.map((t) => (
@@ -42,10 +42,10 @@ export default function FilterBar({ filters, onFilterChange, eventTypes = [] }) 
           <button
             key={value}
             onClick={() => setDateRange(value)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all
+              className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all
               ${(filters.dateRange || 'all') === value
                 ? 'bg-accent text-white border-accent'
-                : 'bg-panel text-ink-dim border-border hover:text-ink hover:border-accent/50'
+                : 'bg-white text-ink-dim border-border hover:text-ink hover:border-accent/50'
               }`}
           >
             {label}

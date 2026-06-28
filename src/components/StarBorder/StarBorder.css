@@ -9,34 +9,16 @@
 
 .star-border-container {
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   border-radius: 1.5rem;
   display: flex;
-}
-
-.star-border-glow {
-  position: absolute;
-  top: -100%;
-  left: -100%;
-  width: 300%;
-  height: 300%;
-  background: conic-gradient(
-    from 0deg,
-    transparent 0%,
-    transparent 45%,
-    var(--border-color, #6366f1) 50%,
-    transparent 55%,
-    transparent 100%
-  );
-  animation: star-border-spin var(--border-speed, 4s) linear infinite;
-  z-index: 1;
-  pointer-events: none;
+  border: 1px solid rgba(248, 215, 229, 0.9);
 }
 
 .star-border-content {
   position: relative;
-  z-index: 2;
-  background-color: #16223f; /* Maps to bg-panel */
+  z-index: 1;
+  background-color: #ffffff;
   border-radius: calc(1.5rem - 1px);
   width: 100%;
   height: 100%;
