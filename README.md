@@ -101,3 +101,13 @@ src/
   pages/
   utils/
 ```
+
+## Additional Features
+
+- **Personalized recommendations** — interest picker that scores events against selected topics and surfaces the best matches
+- **Smart search** — ranked scoring across title, description, tags, host club, and location with live suggestions
+- **Inline event detail** — expandable detail panel that opens in-place without leaving the feed
+- **CampusPulse** — at-a-glance stats section showing upcoming, live, and cancelled event counts
+- **Graceful data normalization** — handles malformed dates, inconsistent tags, missing fields, and invalid emails from the raw dataset without crashing
+- **Bookmark persistence** — survives page refresh via localStorage
+- **Hash-based navigation** — Events tab scrolls to browse section, links can deep-link to #recommended
